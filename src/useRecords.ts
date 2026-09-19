@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useState } from 'react';
 
-import type { TutorRecord } from './types';
+import type { RecordFields, TutorRecord } from './types';
 
 const STORAGE_KEY = 'tutor-record:records';
 
@@ -41,14 +41,18 @@ export function useRecords() {
     );
   }, [records, loaded]);
 
-  const addRecord = useCallback((data: Omit<TutorRecord, 'id'>) => {
+  const addStudent = useCallback((data: RecordFields) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     setRecords((prev) => [{ id, ...data }, ...prev]);
+  }, []);
+
+  const updateRecord = useCallback((id: string, data: RecordFields) => {
+    setRecords((prev) => prev.map((r) => (r.id === id ? { id, ...data } : r)));
   }, []);
 
   const removeRecord = useCallback((id: string) => {
     setRecords((prev) => prev.filter((r) => r.id !== id));
   }, []);
 
-  return { records, loaded, addRecord, removeRecord };
+  return { records, loaded, addStudent, updateRecord, removeRecord };
 }

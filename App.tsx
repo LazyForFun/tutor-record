@@ -3,19 +3,22 @@ import { useState } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-import { AddRecordModal } from './src/AddRecordModal';
+import { AddStudentModal } from './src/AddStudentModal';
 import { formatDateTime } from './src/formatDate';
 import { RecordDetailModal } from './src/RecordDetailModal';
-import type { TutorRecord } from './src/types';
+import type { RecordFields, TutorRecord } from './src/types';
 import { useRecords } from './src/useRecords';
 
 export default function App() {
-  const { records, loaded, addRecord, removeRecord } = useRecords();
-  const [selected, setSelected] = useState<TutorRecord | null>(null);
+  const { records, loaded, addStudent, updateRecord, removeRecord } = useRecords();
+  // Keep only the id and look the record up, so the popup always shows the latest edits
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
-  const handleSave = (data: Omit<TutorRecord, 'id'>) => {
-    addRecord(data);
+  const selected = records.find((r) => r.id === selectedId) ?? null;
+
+  const handleAdd = (data: RecordFields) => {
+    addStudent(data);
     setAdding(false);
   };
 
@@ -42,18 +45,20 @@ export default function App() {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.list}
             ListEmptyComponent={
-              loaded ? <Text style={styles.empty}>目前沒有紀錄，點右下角 + 新增</Text> : null
+              loaded ? <Text style={styles.empty}>目前沒有學生，點右下角 + 新增</Text> : null
             }
             renderItem={({ item }) => (
               <Pressable
                 style={({ pressed }) => [styles.item, pressed && styles.pressed]}
-                onPress={() => setSelected(item)}
+                onPress={() => setSelectedId(item.id)}
                 onLongPress={() => confirmDelete(item)}
               >
                 <Text style={styles.name}>{item.studentName}</Text>
                 <View style={styles.row}>
                   <Text style={styles.rowLabel}>下次上課</Text>
-                  <Text style={styles.rowValue}>{formatDateTime(item.nextLessonAt)}</Text>
+                  <Text style={styles.rowValue}>
+                    {item.nextLessonAt ? formatDateTime(item.nextLessonAt) : '尚未設定'}
+                  </Text>
                 </View>
               </Pressable>
             )}
@@ -62,13 +67,17 @@ export default function App() {
             style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
             onPress={() => setAdding(true)}
             accessibilityRole="button"
-            accessibilityLabel="新增紀錄"
+            accessibilityLabel="新增學生"
           >
             <Text style={styles.fabText}>+</Text>
           </Pressable>
         </View>
-        <RecordDetailModal record={selected} onClose={() => setSelected(null)} />
-        <AddRecordModal visible={adding} onClose={() => setAdding(false)} onSave={handleSave} />
+        <RecordDetailModal
+          record={selected}
+          onClose={() => setSelectedId(null)}
+          onUpdate={updateRecord}
+        />
+        <AddStudentModal visible={adding} onClose={() => setAdding(false)} onAdd={handleAdd} />
         <StatusBar style="auto" />
       </SafeAreaView>
     </SafeAreaProvider>

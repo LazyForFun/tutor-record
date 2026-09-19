@@ -1,12 +1,26 @@
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { formatDate, formatDateTime } from './formatDate';
-import type { TutorRecord } from './types';
+import { RecordForm } from './RecordForm';
+import type { RecordFields, TutorRecord } from './types';
 
 type Props = {
   record: TutorRecord | null;
   onClose: () => void;
+  onUpdate: (id: string, data: RecordFields) => void;
 };
+
+const UNSET = '尚未設定';
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
@@ -17,37 +31,74 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function RecordDetailModal({ record, onClose }: Props) {
+export function RecordDetailModal({ record, onClose, onUpdate }: Props) {
+  const [editing, setEditing] = useState(false);
+
+  const close = () => {
+    setEditing(false);
+    onClose();
+  };
+
   return (
     <Modal
       visible={record !== null}
       transparent
       animationType="fade"
-      onRequestClose={onClose}
+      // Back while editing returns to the detail view instead of closing everything
+      onRequestClose={editing ? () => setEditing(false) : close}
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        {/* Inner Pressable swallows taps so touching the card doesn't close it */}
-        <Pressable style={styles.card} onPress={() => {}}>
-          {record && (
-            <>
-              <Text style={styles.name}>{record.studentName}</Text>
-              <ScrollView style={styles.scroll}>
-                <Field label="下次上課時間" value={formatDateTime(record.nextLessonAt)} />
-                <Field label="上課進度" value={record.progress} />
-                <Field label="上課狀況" value={record.condition} />
-                <Field label="下次收費時間" value={formatDate(record.nextPaymentAt)} />
-                <Field label="作業內容" value={record.homework} />
-              </ScrollView>
-              <Pressable
-                style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}
-                onPress={onClose}
-              >
-                <Text style={styles.closeText}>關閉</Text>
-              </Pressable>
-            </>
-          )}
-        </Pressable>
-      </Pressable>
+      <KeyboardAvoidingView
+        style={styles.backdrop}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        {/* Tapping outside closes the popup, except while editing so edits aren't lost by accident */}
+        <Pressable style={StyleSheet.absoluteFill} onPress={editing ? undefined : close} />
+        <View style={styles.card}>
+          {record &&
+            (editing ? (
+              <RecordForm
+                title="編輯資料"
+                initial={record}
+                onCancel={() => setEditing(false)}
+                onSave={(data) => {
+                  onUpdate(record.id, data);
+                  setEditing(false);
+                }}
+              />
+            ) : (
+              <>
+                <Text style={styles.name}>{record.studentName}</Text>
+                <ScrollView style={styles.scroll}>
+                  <Field
+                    label="下次上課時間"
+                    value={record.nextLessonAt ? formatDateTime(record.nextLessonAt) : UNSET}
+                  />
+                  <Field label="上課進度" value={record.progress || UNSET} />
+                  <Field label="上課狀況" value={record.condition || UNSET} />
+                  <Field
+                    label="下次收費時間"
+                    value={record.nextPaymentAt ? formatDate(record.nextPaymentAt) : UNSET}
+                  />
+                  <Field label="作業內容" value={record.homework || UNSET} />
+                </ScrollView>
+                <View style={styles.buttons}>
+                  <Pressable
+                    style={({ pressed }) => [styles.button, styles.secondary, pressed && styles.pressed]}
+                    onPress={close}
+                  >
+                    <Text style={styles.secondaryText}>關閉</Text>
+                  </Pressable>
+                  <Pressable
+                    style={({ pressed }) => [styles.button, styles.primary, pressed && styles.pressed]}
+                    onPress={() => setEditing(true)}
+                  >
+                    <Text style={styles.primaryText}>編輯</Text>
+                  </Pressable>
+                </View>
+              </>
+            ))}
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -63,7 +114,7 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 480,
-    maxHeight: '85%',
+    maxHeight: '90%',
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 20,
@@ -90,14 +141,29 @@ const styles = StyleSheet.create({
     color: '#111',
     lineHeight: 22,
   },
-  closeButton: {
+  buttons: {
+    flexDirection: 'row',
+    gap: 12,
     marginTop: 8,
-    backgroundColor: '#2563eb',
+  },
+  button: {
+    flex: 1,
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
   },
-  closeText: {
+  secondary: {
+    backgroundColor: '#e5e7eb',
+  },
+  secondaryText: {
+    color: '#111',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  primary: {
+    backgroundColor: '#2563eb',
+  },
+  primaryText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',

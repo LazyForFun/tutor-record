@@ -5,17 +5,18 @@ import { formatDate, formatDateTime } from './formatDate';
 
 type Props = {
   label: string;
-  value: Date;
+  /** null means "not set yet" */
+  value: Date | null;
   /** 'datetime' picks date + time, 'date' picks the date only */
   mode: 'date' | 'datetime';
-  onChange: (date: Date) => void;
+  onChange: (date: Date | null) => void;
 };
 
 export function DateField({ label, value, mode, onChange }: Props) {
   // Android has no combined picker: pick the date first, then the time.
   const openAndroid = () => {
     DateTimePickerAndroid.open({
-      value,
+      value: value ?? new Date(),
       mode: 'date',
       onValueChange: (_e, pickedDate) => {
         if (mode === 'date') {
@@ -32,26 +33,41 @@ export function DateField({ label, value, mode, onChange }: Props) {
     });
   };
 
+  const androidText = value
+    ? mode === 'date'
+      ? formatDate(value.toISOString())
+      : formatDateTime(value.toISOString())
+    : '尚未設定';
+
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
-      {Platform.OS === 'ios' ? (
-        <View style={styles.iosPicker}>
-          <DateTimePicker
-            value={value}
-            mode={mode}
-            display="compact"
-            locale="zh-TW"
-            onValueChange={(_e, date) => onChange(date)}
-          />
-        </View>
-      ) : (
-        <Pressable style={styles.androidButton} onPress={openAndroid}>
-          <Text style={styles.androidText}>
-            {mode === 'date' ? formatDate(value.toISOString()) : formatDateTime(value.toISOString())}
-          </Text>
-        </Pressable>
-      )}
+      <View style={styles.row}>
+        {Platform.OS === 'ios' ? (
+          value ? (
+            <DateTimePicker
+              value={value}
+              mode={mode}
+              display="compact"
+              locale="zh-TW"
+              onValueChange={(_e, date) => onChange(date)}
+            />
+          ) : (
+            <Pressable style={styles.button} onPress={() => onChange(new Date())}>
+              <Text style={styles.placeholder}>尚未設定，點此設定</Text>
+            </Pressable>
+          )
+        ) : (
+          <Pressable style={styles.button} onPress={openAndroid}>
+            <Text style={value ? styles.buttonText : styles.placeholder}>{androidText}</Text>
+          </Pressable>
+        )}
+        {value && (
+          <Pressable onPress={() => onChange(null)} hitSlop={8}>
+            <Text style={styles.clear}>清除</Text>
+          </Pressable>
+        )}
+      </View>
     </View>
   );
 }
@@ -65,18 +81,28 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginBottom: 4,
   },
-  iosPicker: {
-    alignItems: 'flex-start',
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  androidButton: {
+  button: {
     borderWidth: 1,
     borderColor: '#d1d5db',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
-  androidText: {
+  buttonText: {
     fontSize: 16,
     color: '#111',
+  },
+  placeholder: {
+    fontSize: 16,
+    color: '#9ca3af',
+  },
+  clear: {
+    fontSize: 14,
+    color: '#dc2626',
   },
 });
