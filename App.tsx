@@ -33,36 +33,40 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        <Text style={styles.title}>上課紀錄</Text>
-        <FlatList
-          data={records}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          ListEmptyComponent={
-            loaded ? <Text style={styles.empty}>目前沒有紀錄，點右下角 + 新增</Text> : null
-          }
-          renderItem={({ item }) => (
-            <Pressable
-              style={({ pressed }) => [styles.item, pressed && styles.pressed]}
-              onPress={() => setSelected(item)}
-              onLongPress={() => confirmDelete(item)}
-            >
-              <Text style={styles.name}>{item.studentName}</Text>
-              <View style={styles.row}>
-                <Text style={styles.rowLabel}>下次上課</Text>
-                <Text style={styles.rowValue}>{formatDateTime(item.nextLessonAt)}</Text>
-              </View>
-            </Pressable>
-          )}
-        />
-        <Pressable
-          style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
-          onPress={() => setAdding(true)}
-          accessibilityRole="button"
-          accessibilityLabel="新增紀錄"
-        >
-          <Text style={styles.fabText}>+</Text>
-        </Pressable>
+        {/* Absolute children ignore SafeAreaView's padding, so the FAB lives in
+            this inner View to be positioned inside the safe area. */}
+        <View style={styles.content}>
+          <Text style={styles.title}>上課紀錄</Text>
+          <FlatList
+            data={records}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.list}
+            ListEmptyComponent={
+              loaded ? <Text style={styles.empty}>目前沒有紀錄，點右下角 + 新增</Text> : null
+            }
+            renderItem={({ item }) => (
+              <Pressable
+                style={({ pressed }) => [styles.item, pressed && styles.pressed]}
+                onPress={() => setSelected(item)}
+                onLongPress={() => confirmDelete(item)}
+              >
+                <Text style={styles.name}>{item.studentName}</Text>
+                <View style={styles.row}>
+                  <Text style={styles.rowLabel}>下次上課</Text>
+                  <Text style={styles.rowValue}>{formatDateTime(item.nextLessonAt)}</Text>
+                </View>
+              </Pressable>
+            )}
+          />
+          <Pressable
+            style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
+            onPress={() => setAdding(true)}
+            accessibilityRole="button"
+            accessibilityLabel="新增紀錄"
+          >
+            <Text style={styles.fabText}>+</Text>
+          </Pressable>
+        </View>
         <RecordDetailModal record={selected} onClose={() => setSelected(null)} />
         <AddRecordModal visible={adding} onClose={() => setAdding(false)} onSave={handleSave} />
         <StatusBar style="auto" />
@@ -76,6 +80,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f3f4f6',
   },
+  content: {
+    flex: 1,
+  },
   title: {
     fontSize: 28,
     fontWeight: '700',
@@ -86,6 +93,7 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 16,
+    paddingBottom: 96, // keep the last item clear of the + button
     gap: 12,
   },
   item: {
