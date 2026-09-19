@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import { DateField } from './DateField';
 import type { RecordFields } from './types';
@@ -17,6 +17,7 @@ export const emptyFields: RecordFields = {
   progress: '',
   condition: '',
   nextPaymentAt: null,
+  paid: false,
   homework: '',
 };
 
@@ -54,9 +55,16 @@ export function RecordForm({ title, initial, onSave, onCancel }: Props) {
   const [progress, setProgress] = useState(initial.progress);
   const [condition, setCondition] = useState(initial.condition);
   const [nextPaymentAt, setNextPaymentAt] = useState(toDate(initial.nextPaymentAt));
+  const [paid, setPaid] = useState(initial.paid);
   const [homework, setHomework] = useState(initial.homework);
 
   const canSave = studentName.trim().length > 0;
+
+  // A new payment date means a new payment is due, so it starts out unpaid
+  const handlePaymentDateChange = (date: Date | null) => {
+    setNextPaymentAt(date);
+    setPaid(false);
+  };
 
   const handleSave = () => {
     if (!canSave) return;
@@ -66,6 +74,7 @@ export function RecordForm({ title, initial, onSave, onCancel }: Props) {
       progress: progress.trim(),
       condition: condition.trim(),
       nextPaymentAt: nextPaymentAt ? nextPaymentAt.toISOString() : null,
+      paid,
       homework: homework.trim(),
     });
   };
@@ -87,8 +96,12 @@ export function RecordForm({ title, initial, onSave, onCancel }: Props) {
           label="下次收費時間"
           mode="date"
           value={nextPaymentAt}
-          onChange={setNextPaymentAt}
+          onChange={handlePaymentDateChange}
         />
+        <View style={[styles.field, styles.switchRow]}>
+          <Text style={styles.switchLabel}>已收費</Text>
+          <Switch value={paid} onValueChange={setPaid} />
+        </View>
         <TextField label="作業內容" value={homework} onChangeText={setHomework} multiline />
       </ScrollView>
       <View style={styles.buttons}>
@@ -132,6 +145,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6b7280',
     marginBottom: 4,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  switchLabel: {
+    fontSize: 16,
+    color: '#111',
   },
   input: {
     borderWidth: 1,

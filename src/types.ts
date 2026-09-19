@@ -9,6 +9,8 @@ export type TutorRecord = {
   condition: string;
   /** ISO 8601 datetime of the next payment, null until set */
   nextPaymentAt: string | null;
+  /** 已收費: whether the payment for `nextPaymentAt` has been received */
+  paid: boolean;
   /** 作業內容 */
   homework: string;
 };

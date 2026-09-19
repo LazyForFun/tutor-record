@@ -79,6 +79,7 @@ export function RecordDetailModal({ record, onClose, onUpdate }: Props) {
                     label="下次收費時間"
                     value={record.nextPaymentAt ? formatDate(record.nextPaymentAt) : UNSET}
                   />
+                  <Field label="收費狀態" value={record.paid ? '已收費' : '未收費'} />
                   <Field label="作業內容" value={record.homework || UNSET} />
                 </ScrollView>
                 <View style={styles.buttons}>

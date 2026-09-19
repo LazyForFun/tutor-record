@@ -10,7 +10,9 @@ async function loadRecords(): Promise<TutorRecord[]> {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as TutorRecord[]) : [];
+    if (!Array.isArray(parsed)) return [];
+    // Records saved before `paid` existed have no such field: treat them as unpaid
+    return (parsed as TutorRecord[]).map((r) => ({ ...r, paid: r.paid === true }));
   } catch {
     return [];
   }
