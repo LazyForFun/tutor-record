@@ -1,16 +1,34 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
+import { AddRecordModal } from './src/AddRecordModal';
 import { formatDateTime } from './src/formatDate';
 import { RecordDetailModal } from './src/RecordDetailModal';
-import { sampleRecords } from './src/sampleRecords';
 import type { TutorRecord } from './src/types';
+import { useRecords } from './src/useRecords';
 
 export default function App() {
-  const [records] = useState<TutorRecord[]>(sampleRecords);
+  const { records, loaded, addRecord, removeRecord } = useRecords();
   const [selected, setSelected] = useState<TutorRecord | null>(null);
+  const [adding, setAdding] = useState(false);
+
+  const handleSave = (data: Omit<TutorRecord, 'id'>) => {
+    addRecord(data);
+    setAdding(false);
+  };
+
+  const confirmDelete = (record: TutorRecord) => {
+    Alert.alert(record.studentName, undefined, [
+      { text: '取消', style: 'cancel' },
+      {
+        text: '刪除',
+        style: 'destructive',
+        onPress: () => removeRecord(record.id),
+      },
+    ]);
+  };
 
   return (
     <SafeAreaProvider>
@@ -20,11 +38,14 @@ export default function App() {
           data={records}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
-          ListEmptyComponent={<Text style={styles.empty}>目前沒有紀錄</Text>}
+          ListEmptyComponent={
+            loaded ? <Text style={styles.empty}>目前沒有紀錄，點右下角 + 新增</Text> : null
+          }
           renderItem={({ item }) => (
             <Pressable
               style={({ pressed }) => [styles.item, pressed && styles.pressed]}
               onPress={() => setSelected(item)}
+              onLongPress={() => confirmDelete(item)}
             >
               <Text style={styles.name}>{item.studentName}</Text>
               <View style={styles.row}>
@@ -34,7 +55,16 @@ export default function App() {
             </Pressable>
           )}
         />
+        <Pressable
+          style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
+          onPress={() => setAdding(true)}
+          accessibilityRole="button"
+          accessibilityLabel="新增紀錄"
+        >
+          <Text style={styles.fabText}>+</Text>
+        </Pressable>
         <RecordDetailModal record={selected} onClose={() => setSelected(null)} />
+        <AddRecordModal visible={adding} onClose={() => setAdding(false)} onSave={handleSave} />
         <StatusBar style="auto" />
       </SafeAreaView>
     </SafeAreaProvider>
@@ -83,6 +113,28 @@ const styles = StyleSheet.create({
   rowValue: {
     fontSize: 14,
     color: '#111',
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#2563eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  fabText: {
+    color: '#fff',
+    fontSize: 32,
+    lineHeight: 36,
+    fontWeight: '400',
   },
   empty: {
     textAlign: 'center',
