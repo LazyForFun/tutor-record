@@ -1,15 +1,20 @@
 {
   "expo": {
-    "name": "tutor-record",
+    "name": "家教紀錄",
     "slug": "tutor-record",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lazyforfun.tutorrecord",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.lazyforfun.tutorrecord",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -23,6 +28,12 @@
     },
     "plugins": [
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "2b0de533-2034-4711-a9c6-c8a95723ce9f"
+      }
+    },
+    "owner": "ling900101"
   }
 }
