@@ -58,6 +58,7 @@ export default function App() {
                   <Text style={styles.rowLabel}>下次上課</Text>
                   <Text style={styles.rowValue}>
                     {item.nextLessonAt ? formatDateTime(item.nextLessonAt) : '尚未設定'}
+                    {item.skipNext && '（停課）'}
                   </Text>
                 </View>
               </Pressable>

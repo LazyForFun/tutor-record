@@ -78,6 +78,7 @@ export function RecordDetailModal({ record, onClose, onUpdate }: Props) {
                     label="下次上課時間"
                     value={record.nextLessonAt ? formatDateTime(record.nextLessonAt) : UNSET}
                   />
+                  {record.skipNext && <Field label="下次停課" value="是，當天不上課" />}
                   <Field label="上課進度" value={record.progress || UNSET} />
                   <Field label="上課狀況" value={record.condition || UNSET} />
                   <Field

@@ -5,6 +5,8 @@ export type TutorRecord = {
   nextLessonAt: string | null;
   /** 固定每週上課日, Date#getDay style (0 = Sunday .. 6 = Saturday), empty when not fixed */
   lessonWeekdays: number[];
+  /** 下次停課: the upcoming lesson is cancelled; cleared when it rolls over to the next fixed day */
+  skipNext: boolean;
   /** 上課進度 */
   progress: string;
   /** 上課狀況 */

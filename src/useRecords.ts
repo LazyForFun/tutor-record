@@ -13,12 +13,13 @@ async function loadRecords(): Promise<TutorRecord[]> {
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    // Older records may lack `paid` / `lessonWeekdays` (or hold the single-day `lessonWeekday`):
-    // treat them as unpaid / carry the day over
+    // Older records may lack `paid` / `skipNext` / `lessonWeekdays` (or hold the single-day
+    // `lessonWeekday`): treat them as unpaid / not skipped / carry the day over
     return (parsed as (TutorRecord & { lessonWeekday?: number | null })[]).map(
       ({ lessonWeekday, ...r }) => ({
         ...r,
         paid: r.paid === true,
+        skipNext: r.skipNext === true,
         lessonWeekdays: Array.isArray(r.lessonWeekdays)
           ? r.lessonWeekdays
           : typeof lessonWeekday === 'number'

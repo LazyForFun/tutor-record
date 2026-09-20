@@ -16,6 +16,7 @@ export const emptyFields: RecordFields = {
   studentName: '',
   lessonWeekdays: [],
   nextLessonAt: null,
+  skipNext: false,
   progress: '',
   condition: '',
   nextPaymentAt: null,
@@ -55,6 +56,7 @@ export function RecordForm({ title, initial, onSave, onCancel }: Props) {
   const [studentName, setStudentName] = useState(initial.studentName);
   const [lessonWeekdays, setLessonWeekdays] = useState(initial.lessonWeekdays);
   const [nextLessonAt, setNextLessonAt] = useState(toDate(initial.nextLessonAt));
+  const [skipNext, setSkipNext] = useState(initial.skipNext);
   const [progress, setProgress] = useState(initial.progress);
   const [condition, setCondition] = useState(initial.condition);
   const [nextPaymentAt, setNextPaymentAt] = useState(toDate(initial.nextPaymentAt));
@@ -75,6 +77,8 @@ export function RecordForm({ title, initial, onSave, onCancel }: Props) {
       studentName: studentName.trim(),
       lessonWeekdays,
       nextLessonAt: nextLessonAt ? nextLessonAt.toISOString() : null,
+      // Skipping only makes sense while lessons roll over by fixed day, which is what clears it
+      skipNext: lessonWeekdays.length > 0 && skipNext,
       progress: progress.trim(),
       condition: condition.trim(),
       nextPaymentAt: nextPaymentAt ? nextPaymentAt.toISOString() : null,
@@ -120,6 +124,12 @@ export function RecordForm({ title, initial, onSave, onCancel }: Props) {
           value={nextLessonAt}
           onChange={setNextLessonAt}
         />
+        {lessonWeekdays.length > 0 && (
+          <View style={[styles.field, styles.switchRow]}>
+            <Text style={styles.switchLabel}>下次停課</Text>
+            <Switch value={skipNext} onValueChange={setSkipNext} />
+          </View>
+        )}
         <TextField label="上課進度" value={progress} onChangeText={setProgress} multiline />
         <TextField label="上課狀況" value={condition} onChangeText={setCondition} multiline />
         <DateField

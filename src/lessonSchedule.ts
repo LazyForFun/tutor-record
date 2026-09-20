@@ -40,5 +40,10 @@ export function advanceLesson(record: TutorRecord, now: Date): TutorRecord {
   const current = record.nextLessonAt === null ? now : new Date(record.nextLessonAt);
   if (record.nextLessonAt !== null && current > now) return record;
   const next = nextOccurrence(now, record.lessonWeekdays, current);
-  return { ...record, nextLessonAt: next.toISOString() };
+  // A lesson that has come and gone was the one being skipped, so the skip is used up
+  return {
+    ...record,
+    nextLessonAt: next.toISOString(),
+    skipNext: record.nextLessonAt === null ? record.skipNext : false,
+  };
 }
