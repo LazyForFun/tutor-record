@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import { DateField } from './DateField';
+import { WEEKDAYS } from './lessonSchedule';
 import type { RecordFields } from './types';
 
 type Props = {
@@ -13,6 +14,7 @@ type Props = {
 
 export const emptyFields: RecordFields = {
   studentName: '',
+  lessonWeekdays: [],
   nextLessonAt: null,
   progress: '',
   condition: '',
@@ -51,6 +53,7 @@ const toDate = (iso: string | null) => (iso ? new Date(iso) : null);
 /** Form for one student, used for both add and edit. Mount it fresh each time: state is seeded from `initial` once. */
 export function RecordForm({ title, initial, onSave, onCancel }: Props) {
   const [studentName, setStudentName] = useState(initial.studentName);
+  const [lessonWeekdays, setLessonWeekdays] = useState(initial.lessonWeekdays);
   const [nextLessonAt, setNextLessonAt] = useState(toDate(initial.nextLessonAt));
   const [progress, setProgress] = useState(initial.progress);
   const [condition, setCondition] = useState(initial.condition);
@@ -70,6 +73,7 @@ export function RecordForm({ title, initial, onSave, onCancel }: Props) {
     if (!canSave) return;
     onSave({
       studentName: studentName.trim(),
+      lessonWeekdays,
       nextLessonAt: nextLessonAt ? nextLessonAt.toISOString() : null,
       progress: progress.trim(),
       condition: condition.trim(),
@@ -84,6 +88,32 @@ export function RecordForm({ title, initial, onSave, onCancel }: Props) {
       <Text style={styles.title}>{title}</Text>
       <ScrollView keyboardShouldPersistTaps="handled" style={styles.scroll}>
         <TextField label="學生姓名" value={studentName} onChangeText={setStudentName} />
+        <View style={styles.field}>
+          <Text style={styles.label}>固定上課日（每週，可複選）</Text>
+          <View style={styles.weekdays}>
+            {WEEKDAYS.map(({ value, label }) => {
+              const selected = lessonWeekdays.includes(value);
+              return (
+                <Pressable
+                  key={value}
+                  style={[styles.weekday, selected && styles.weekdaySelected]}
+                  onPress={() =>
+                    setLessonWeekdays((prev) =>
+                      selected ? prev.filter((d) => d !== value) : [...prev, value],
+                    )
+                  }
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={`週${label}`}
+                >
+                  <Text style={[styles.weekdayText, selected && styles.weekdayTextSelected]}>
+                    {label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
         <DateField
           label="下次上課時間"
           mode="datetime"
@@ -154,6 +184,30 @@ const styles = StyleSheet.create({
   switchLabel: {
     fontSize: 16,
     color: '#111',
+  },
+  weekdays: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  weekday: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  weekdaySelected: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+  },
+  weekdayText: {
+    fontSize: 16,
+    color: '#111',
+  },
+  weekdayTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
   },
   input: {
     borderWidth: 1,

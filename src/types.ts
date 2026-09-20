@@ -3,6 +3,8 @@ export type TutorRecord = {
   studentName: string;
   /** ISO 8601 datetime of the next lesson, null until set */
   nextLessonAt: string | null;
+  /** 固定每週上課日, Date#getDay style (0 = Sunday .. 6 = Saturday), empty when not fixed */
+  lessonWeekdays: number[];
   /** 上課進度 */
   progress: string;
   /** 上課狀況 */

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { formatDate, formatDateTime } from './formatDate';
+import { formatWeekdays } from './lessonSchedule';
 import { RecordForm } from './RecordForm';
 import type { RecordFields, TutorRecord } from './types';
 
@@ -69,6 +70,10 @@ export function RecordDetailModal({ record, onClose, onUpdate }: Props) {
               <>
                 <Text style={styles.name}>{record.studentName}</Text>
                 <ScrollView style={styles.scroll}>
+                  <Field
+                    label="固定上課日"
+                    value={record.lessonWeekdays.length > 0 ? `每${formatWeekdays(record.lessonWeekdays)}` : UNSET}
+                  />
                   <Field
                     label="下次上課時間"
                     value={record.nextLessonAt ? formatDateTime(record.nextLessonAt) : UNSET}
